@@ -1,5 +1,6 @@
 package com.disl.librarymanagementsystem.serviceImpl;
 
+import com.disl.librarymanagementsystem.dto.BookDto;
 import com.disl.librarymanagementsystem.entity.Book;
 import com.disl.librarymanagementsystem.model.response.BookResponse;
 import com.disl.librarymanagementsystem.repository.BookRepository;
@@ -7,7 +8,6 @@ import com.disl.librarymanagementsystem.service.BookService;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.search.mapper.orm.Search;
-import org.hibernate.search.mapper.orm.scope.SearchScope;
 import org.hibernate.search.mapper.orm.session.SearchSession;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
@@ -25,6 +25,17 @@ public class BookServiceImpl implements BookService {
 
 
     @Override
+    public void createBook(BookDto bookDto) {
+        Book book = new Book();
+        book.setTitle(bookDto.getTitle());
+        book.setAuthor(bookDto.getAuthor());
+        System.out.println("ISBN"+bookDto.getIsbn());
+        book.setIsbn(bookDto.getIsbn());
+        book.setAvailable(bookDto.isAvailable());
+        bookRepository.save(book);
+    }
+
+    @Override
     public void saveBook(Book book) {
         bookRepository.save(book);
     }
@@ -38,5 +49,32 @@ public class BookServiceImpl implements BookService {
                 .where(f-> f.match().fields("title","author").matching(keyword)).fetchHits(20);
 
         return books.stream().map(book -> modelMapper.map(book,BookResponse.class)).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<BookResponse> getAllBooks() {
+        List<Book> bookList = bookRepository.findAll();
+        return bookList.stream().map(book -> modelMapper.map(book,BookResponse.class)).collect(Collectors.toList());
+    }
+
+    @Override
+    public BookResponse updateBook(Long id, BookDto bookDto) {
+
+        Book bookFromDb =bookRepository.findById(id).get();
+
+        bookFromDb.setTitle(bookDto.getTitle());
+        bookFromDb.setAuthor(bookDto.getAuthor());
+        bookFromDb.setIsbn(bookDto.getIsbn());
+        bookFromDb.setAvailable(bookDto.isAvailable());
+
+        bookFromDb = bookRepository.save(bookFromDb);
+
+        return modelMapper.map(bookFromDb,BookResponse.class);
+    }
+
+    @Override
+    public void deleteBook(Long id) {
+        Book book = bookRepository.findById(id).get();
+        bookRepository.delete(book);
     }
 }

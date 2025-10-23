@@ -12,4 +12,5 @@ public class BookResponse {
     private String title;
     private String author;
     private String ISBN;
+    private boolean isAvailable;
 }

@@ -27,18 +27,18 @@ public class Book {
 
     @Column(name = "book_title")
     @NotBlank(message = "Book must contain a title")
-    @FullTextField(termVector = TermVector.YES)
+    @FullTextField(analyzer = "english", termVector = TermVector.YES)
     private String title;
 
     @Column(name = "author_name")
     @NotBlank(message = "Book must contain author name")
-    @FullTextField(termVector = TermVector.YES)
+    @FullTextField(analyzer = "name", termVector = TermVector.YES)
     private String author;
 
     @Column(name = "isbn")
     @NotBlank(message = "Book must contain ISBN number")
     @FullTextField(termVector = TermVector.YES)
-    private String ISBN;
+    private String isbn;
 
     @Column(name = "is_book_available")
     private boolean isAvailable;
