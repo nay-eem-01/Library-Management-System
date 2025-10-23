@@ -6,11 +6,14 @@ import com.disl.librarymanagementsystem.repository.BookRepository;
 import com.disl.librarymanagementsystem.service.BookService;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
-import org.apache.lucene.util.QueryBuilder;
 import org.hibernate.search.mapper.orm.Search;
 import org.hibernate.search.mapper.orm.scope.SearchScope;
 import org.hibernate.search.mapper.orm.session.SearchSession;
+import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +21,7 @@ public class BookServiceImpl implements BookService {
 
     private final BookRepository bookRepository;
     private final EntityManager entityManager;
+    private final ModelMapper modelMapper;
 
 
     @Override
@@ -26,13 +30,13 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public BookResponse findBookByKeyword(String keyword) {
+    public List<BookResponse> findBookByKeyword(String keyword) {
+
         SearchSession searchSession = Search.session(entityManager);
-        SearchScope<Book> scope = searchSession.scope(Book.class);
 
-        Book book = (Book) searchSession.search(Book.class)
-                .where(f-> f.match().field("title").matching("java"));
+        List<Book> books = searchSession.search(Book.class)
+                .where(f-> f.match().fields("title","author").matching(keyword)).fetchHits(20);
 
-        return null;
+        return books.stream().map(book -> modelMapper.map(book,BookResponse.class)).collect(Collectors.toList());
     }
 }
