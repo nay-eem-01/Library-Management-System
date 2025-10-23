@@ -29,7 +29,7 @@ public class BookServiceImpl implements BookService {
         Book book = new Book();
         book.setTitle(bookDto.getTitle());
         book.setAuthor(bookDto.getAuthor());
-        System.out.println("ISBN"+bookDto.getIsbn());
+        System.out.println("ISBN" + bookDto.getIsbn());
         book.setIsbn(bookDto.getIsbn());
         book.setAvailable(bookDto.isAvailable());
         bookRepository.save(book);
@@ -42,25 +42,41 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public List<BookResponse> findBookByKeyword(String keyword) {
-
         SearchSession searchSession = Search.session(entityManager);
 
-        List<Book> books = searchSession.search(Book.class)
-                .where(f-> f.match().fields("title","author").matching(keyword)).fetchHits(20);
+        List<Book> bookList = searchSession.search(Book.class)
+                .where(f -> f.bool()
+                        .should(f.phrase()
+                                .fields("title", "author")
+                                .matching(keyword)
+                                .boost(3.0f))
+                        .should(f.match()
+                                .fields("title", "author")
+                                .matching(keyword)
+                                .boost(1.0f))
+                        .should(f.match()
+                                .fields("title", "author")
+                                .matching(keyword)
+                                .fuzzy(2, 2)
+                                .boost(0.5f)))
+                .sort(f -> f.score())
+                .fetchHits(20);
 
-        return books.stream().map(book -> modelMapper.map(book,BookResponse.class)).collect(Collectors.toList());
+        return bookList.stream()
+                .map(book -> modelMapper.map(book, BookResponse.class))
+                .collect(Collectors.toList());
     }
 
     @Override
     public List<BookResponse> getAllBooks() {
         List<Book> bookList = bookRepository.findAll();
-        return bookList.stream().map(book -> modelMapper.map(book,BookResponse.class)).collect(Collectors.toList());
+        return bookList.stream().map(book -> modelMapper.map(book, BookResponse.class)).collect(Collectors.toList());
     }
 
     @Override
     public BookResponse updateBook(Long id, BookDto bookDto) {
 
-        Book bookFromDb =bookRepository.findById(id).get();
+        Book bookFromDb = bookRepository.findById(id).get();
 
         bookFromDb.setTitle(bookDto.getTitle());
         bookFromDb.setAuthor(bookDto.getAuthor());
@@ -69,7 +85,7 @@ public class BookServiceImpl implements BookService {
 
         bookFromDb = bookRepository.save(bookFromDb);
 
-        return modelMapper.map(bookFromDb,BookResponse.class);
+        return modelMapper.map(bookFromDb, BookResponse.class);
     }
 
     @Override
