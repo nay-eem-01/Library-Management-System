@@ -29,7 +29,7 @@ public class BookController {
     }
     @PostMapping("/add")
     public ResponseEntity<HttpResponse> addBook(@RequestBody BookDto bookDto){
-        bookService.createBook(bookDto);
+        bookService.saveBook(bookDto);
         return HttpResponse.getResponseEntity(HttpStatus.CREATED,"Book added to the library",null,true);
     }
     @PutMapping("/update/{id}")

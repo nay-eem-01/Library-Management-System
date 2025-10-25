@@ -7,8 +7,8 @@ import com.disl.librarymanagementsystem.model.response.BookResponse;
 import java.util.List;
 
 public interface BookService {
-    void createBook(BookDto bookDto);
-    void saveBook(Book book);
+
+    void saveBook(BookDto bookDto);
 
     List<BookResponse> findBookByKeyword(String keyword);
 

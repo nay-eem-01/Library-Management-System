@@ -7,6 +7,7 @@ import com.disl.librarymanagementsystem.repository.BookRepository;
 import com.disl.librarymanagementsystem.service.BookService;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.search.engine.search.sort.dsl.SearchSortFactory;
 import org.hibernate.search.mapper.orm.Search;
 import org.hibernate.search.mapper.orm.session.SearchSession;
 import org.modelmapper.ModelMapper;
@@ -25,18 +26,14 @@ public class BookServiceImpl implements BookService {
 
 
     @Override
-    public void createBook(BookDto bookDto) {
+    public void saveBook(BookDto bookDto) {
+
         Book book = new Book();
         book.setTitle(bookDto.getTitle());
         book.setAuthor(bookDto.getAuthor());
-        System.out.println("ISBN" + bookDto.getIsbn());
         book.setIsbn(bookDto.getIsbn());
         book.setAvailable(bookDto.isAvailable());
-        bookRepository.save(book);
-    }
 
-    @Override
-    public void saveBook(Book book) {
         bookRepository.save(book);
     }
 
@@ -59,7 +56,7 @@ public class BookServiceImpl implements BookService {
                                 .matching(keyword)
                                 .fuzzy(2, 2)
                                 .boost(0.5f)))
-                .sort(f -> f.score())
+                .sort(SearchSortFactory::score)
                 .fetchHits(20);
 
         return bookList.stream()

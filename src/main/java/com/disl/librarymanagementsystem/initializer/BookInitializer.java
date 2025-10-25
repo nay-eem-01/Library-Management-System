@@ -12,7 +12,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class BookInitializer implements ApplicationListener<ApplicationContextEvent> {
 
-    private final BookService bookService;
     private final BookRepository bookRepository;
 
     @Override
@@ -22,8 +21,7 @@ public class BookInitializer implements ApplicationListener<ApplicationContextEv
             book.setTitle("Java tutorial");
             book.setAuthor("Alex mark");
             book.setIsbn("1234");
-            book.setAvailable(true);
-            bookService.saveBook(book);
+            bookRepository.save(book);
         }
     }
 }
