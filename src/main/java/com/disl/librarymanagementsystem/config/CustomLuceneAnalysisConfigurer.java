@@ -1,6 +1,8 @@
 package com.disl.librarymanagementsystem.config;
 
+import org.apache.lucene.analysis.StopwordAnalyzerBase;
 import org.apache.lucene.analysis.core.LowerCaseFilterFactory;
+import org.apache.lucene.analysis.core.StopFilterFactory;
 import org.apache.lucene.analysis.miscellaneous.ASCIIFoldingFilterFactory;
 import org.apache.lucene.analysis.snowball.SnowballPorterFilterFactory;
 import org.apache.lucene.analysis.standard.StandardTokenizerFactory;
@@ -16,9 +18,11 @@ public class CustomLuceneAnalysisConfigurer implements LuceneAnalysisConfigurer 
         context.analyzer("english").custom()
                 .tokenizer(StandardTokenizerFactory.class)
                 .tokenFilter(LowerCaseFilterFactory.class)
+                .tokenFilter(StopFilterFactory.class)
                 .tokenFilter(SnowballPorterFilterFactory.class)
                 .param("language", "English")
                 .tokenFilter(ASCIIFoldingFilterFactory.class);
+        
         context.analyzer("name").custom()
                 .tokenizer(StandardTokenizerFactory.class)
                 .tokenFilter(LowerCaseFilterFactory.class)
