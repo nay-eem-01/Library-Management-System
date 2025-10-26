@@ -15,6 +15,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -87,7 +88,7 @@ public class BookServiceImpl implements BookService {
         Book bookFromDb = bookRepository.findById(id).get();
 
         bookFromDb.setTitle(bookDto.getTitle());
-        bookFromDb.setAuthor(bookDto.getAuthor());
+        bookFromDb.setAuthor(Set.of(bookDto.getAuthorDto()));
         bookFromDb.setIsbn(bookDto.getIsbn());
         bookFromDb.setAvailable(bookDto.isAvailable());
 

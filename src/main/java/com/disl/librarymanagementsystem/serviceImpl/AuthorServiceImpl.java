@@ -2,6 +2,8 @@ package com.disl.librarymanagementsystem.serviceImpl;
 
 import com.disl.librarymanagementsystem.dto.AuthorDto;
 import com.disl.librarymanagementsystem.entity.Author;
+import com.disl.librarymanagementsystem.exceptionHandler.AlreadyExistsException;
+import com.disl.librarymanagementsystem.exceptionHandler.ResourceNotFoundException;
 import com.disl.librarymanagementsystem.model.response.AuthorResponse;
 import com.disl.librarymanagementsystem.repository.AuthorRepository;
 import com.disl.librarymanagementsystem.service.AuthorService;
@@ -21,8 +23,7 @@ public class AuthorServiceImpl implements AuthorService {
 
     @Override
     public void saveAuthor(AuthorDto authorDto) {
-
-        if (authorRepository.existsAuthorByName(authorDto.getName())){
+        if (authorRepository.existsAuthorByName(authorDto.getName())) {
             throw new AlreadyExistsException("Author already exists");
         }
         Author author = new Author();
@@ -32,8 +33,7 @@ public class AuthorServiceImpl implements AuthorService {
 
     @Override
     public List<AuthorResponse> getAllAuthor() {
-
-        List<Author> authors= authorRepository.findAll();
+        List<Author> authors = authorRepository.findAll();
         return authors
                 .stream()
                 .map(author ->
@@ -43,9 +43,8 @@ public class AuthorServiceImpl implements AuthorService {
 
     @Override
     public AuthorResponse updateAuthor(AuthorDto authorDto, Long id) {
-
         Author author = authorRepository.findById(id)
-                .orElseThrow(()-> new ResourceNotFoundException("Author does not exist"));
+                .orElseThrow(() -> new ResourceNotFoundException("Author does not exist"));
         author.setName(author.getName());
         author = authorRepository.save(author);
         return modelMapper.map(author, AuthorResponse.class);
@@ -53,9 +52,8 @@ public class AuthorServiceImpl implements AuthorService {
 
     @Override
     public void deleteAuthor(Long id) {
-
         Author author = authorRepository.findById(id)
-                .orElseThrow(()-> new ResourceNotFoundException("Author does not exist"));
+                .orElseThrow(() -> new ResourceNotFoundException("Author does not exist"));
         authorRepository.delete(author);
     }
 }

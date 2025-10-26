@@ -9,7 +9,7 @@ import lombok.*;
 @AllArgsConstructor
 public class BookDto {
     private String title;
-    private String author;
+    private AuthorDto authorDto;
     private String isbn;
     private boolean isAvailable;
 }
