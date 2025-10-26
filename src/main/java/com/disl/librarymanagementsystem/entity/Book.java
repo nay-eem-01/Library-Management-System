@@ -11,6 +11,9 @@ import org.hibernate.search.engine.backend.types.TermVector;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
+
+import java.util.Set;
 
 @Entity
 @Table(name = "books")
@@ -30,10 +33,10 @@ public class Book {
     @FullTextField(analyzer = "english", termVector = TermVector.YES)
     private String title;
 
-    @Column(name = "author_name")
-    @NotBlank(message = "Book must contain author name")
-    @FullTextField(analyzer = "name", termVector = TermVector.YES)
-    private String author;
+//    @Column(name = "author_name")
+//    @NotBlank(message = "Book must contain author name")
+//    @FullTextField(analyzer = "name", termVector = TermVector.YES)
+//    private String author;
 
     @Column(name = "isbn")
     @NotBlank(message = "Book must contain ISBN number")
@@ -42,4 +45,12 @@ public class Book {
 
     @Column(name = "is_book_available")
     private boolean isAvailable;
+
+    @ManyToMany
+    @JoinTable(
+            name = "book_author",
+            joinColumns = @JoinColumn(name = "book_id"),
+            inverseJoinColumns = @JoinColumn(name = "author_id"))
+    @IndexedEmbedded
+    private Set<Author> author;
 }
