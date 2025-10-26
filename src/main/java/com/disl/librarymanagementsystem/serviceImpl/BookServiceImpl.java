@@ -7,6 +7,7 @@ import com.disl.librarymanagementsystem.repository.BookRepository;
 import com.disl.librarymanagementsystem.service.BookService;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.hibernate.search.engine.search.sort.dsl.SearchSortFactory;
 import org.hibernate.search.mapper.orm.Search;
 import org.hibernate.search.mapper.orm.session.SearchSession;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BookServiceImpl implements BookService {
@@ -35,6 +37,7 @@ public class BookServiceImpl implements BookService {
         book.setAvailable(bookDto.isAvailable());
 
         bookRepository.save(book);
+        log.info("Book entity saved to DB: {}",book);
     }
 
     @Override
@@ -59,6 +62,8 @@ public class BookServiceImpl implements BookService {
                 .sort(SearchSortFactory::score)
                 .fetchHits(20);
 
+        log.info("\nSearching result for keyword {}\nResults:{}",keyword,bookList);
+
         return bookList.stream()
                 .map(book -> modelMapper.map(book, BookResponse.class))
                 .collect(Collectors.toList());
@@ -82,12 +87,15 @@ public class BookServiceImpl implements BookService {
 
         bookFromDb = bookRepository.save(bookFromDb);
 
+        log.info("Book updated: {}",bookFromDb);
+
         return modelMapper.map(bookFromDb, BookResponse.class);
     }
 
     @Override
     public void deleteBook(Long id) {
         Book book = bookRepository.findById(id).get();
+        log.info("Book deleting...{}",book);
         bookRepository.delete(book);
     }
 }
