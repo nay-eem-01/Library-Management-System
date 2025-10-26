@@ -44,29 +44,37 @@ public class BookServiceImpl implements BookService {
     public List<BookResponse> findBookByKeyword(String keyword) {
         SearchSession searchSession = Search.session(entityManager);
 
+        String normalizedKeyword = keyword.toLowerCase().trim();
         List<Book> bookList = searchSession.search(Book.class)
                 .where(f -> f.bool()
                         .should(f.phrase()
+                                .fields("title", "author")
+                                .matching(keyword)
+                                .boost(5.0f))
+                        .should(f.match()
                                 .fields("title", "author")
                                 .matching(keyword)
                                 .boost(3.0f))
                         .should(f.match()
                                 .fields("title", "author")
                                 .matching(keyword)
-                                .boost(1.0f))
-                        .should(f.match()
-                                .fields("title", "author")
-                                .matching(keyword)
                                 .fuzzy(2, 2)
+                                .boost(0.2f))
+                        .should(f.wildcard()
+                                .fields("title","author")
+                                .matching("*"+normalizedKeyword+"*")
                                 .boost(0.5f)))
                 .sort(SearchSortFactory::score)
                 .fetchHits(20);
 
-        log.info("\nSearching result for keyword {}\nResults:{}",keyword,bookList);
-
-        return bookList.stream()
+        List<BookResponse> bookResponseList =  bookList
+                .stream()
                 .map(book -> modelMapper.map(book, BookResponse.class))
                 .collect(Collectors.toList());
+
+        log.info("\nSearching result for keyword '{}'\nResults:{}",keyword,bookResponseList);
+
+        return bookResponseList;
     }
 
     @Override
