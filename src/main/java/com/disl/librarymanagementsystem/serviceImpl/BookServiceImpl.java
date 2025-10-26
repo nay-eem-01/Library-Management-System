@@ -1,9 +1,14 @@
 package com.disl.librarymanagementsystem.serviceImpl;
 
+import com.disl.librarymanagementsystem.dto.AuthorDto;
 import com.disl.librarymanagementsystem.dto.BookDto;
+import com.disl.librarymanagementsystem.entity.Author;
 import com.disl.librarymanagementsystem.entity.Book;
+import com.disl.librarymanagementsystem.exceptionHandler.AlreadyExistsException;
+import com.disl.librarymanagementsystem.exceptionHandler.ResourceNotFoundException;
 import com.disl.librarymanagementsystem.model.response.BookResponse;
 import com.disl.librarymanagementsystem.repository.BookRepository;
+import com.disl.librarymanagementsystem.service.AuthorService;
 import com.disl.librarymanagementsystem.service.BookService;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -27,18 +32,27 @@ public class BookServiceImpl implements BookService {
     private final EntityManager entityManager;
     private final ModelMapper modelMapper;
 
-
     @Override
     public void saveBook(BookDto bookDto) {
 
+        if (bookRepository.existsBooksByIsbn(bookDto.getIsbn())) {
+            throw new AlreadyExistsException("Book already exists");
+        }
+
         Book book = new Book();
+        Set<Author> authors = bookDto.getAuthorDto()
+                .stream()
+                .map(authorDto ->
+                        modelMapper.map(authorDto, Author.class))
+                .collect(Collectors.toSet());
+
         book.setTitle(bookDto.getTitle());
-        book.setAuthor(bookDto.getAuthor());
+        book.setAuthor(authors);
         book.setIsbn(bookDto.getIsbn());
         book.setAvailable(bookDto.isAvailable());
 
         bookRepository.save(book);
-        log.info("Book entity saved to DB: {}",book);
+        log.info("Book entity saved to DB: {}", book);
     }
 
     @Override
@@ -66,12 +80,12 @@ public class BookServiceImpl implements BookService {
                 .sort(SearchSortFactory::score)
                 .fetchHits(20);
 
-        List<BookResponse> bookResponseList =  bookList
+        List<BookResponse> bookResponseList = bookList
                 .stream()
                 .map(book -> modelMapper.map(book, BookResponse.class))
                 .collect(Collectors.toList());
 
-        log.info("\nSearching result for keyword '{}'\nResults:{}",keyword,bookResponseList);
+        log.info("\nSearching result for keyword '{}'\nResults:{}", keyword, bookResponseList);
 
         return bookResponseList;
     }
@@ -85,24 +99,32 @@ public class BookServiceImpl implements BookService {
     @Override
     public BookResponse updateBook(Long id, BookDto bookDto) {
 
-        Book bookFromDb = bookRepository.findById(id).get();
+        Book bookFromDb = bookRepository.findById(id).
+                orElseThrow(() -> new ResourceNotFoundException("Book does not exist"));
+
+        Set<Author> authors = bookDto.getAuthorDto()
+                .stream()
+                .map(authorDto ->
+                        modelMapper.map(authorDto, Author.class))
+                .collect(Collectors.toSet());
 
         bookFromDb.setTitle(bookDto.getTitle());
-        bookFromDb.setAuthor(Set.of(bookDto.getAuthorDto()));
+        bookFromDb.setAuthor(authors);
         bookFromDb.setIsbn(bookDto.getIsbn());
         bookFromDb.setAvailable(bookDto.isAvailable());
 
         bookFromDb = bookRepository.save(bookFromDb);
 
-        log.info("Book updated: {}",bookFromDb);
+        log.info("Book updated: {}", bookFromDb);
 
         return modelMapper.map(bookFromDb, BookResponse.class);
     }
 
     @Override
     public void deleteBook(Long id) {
-        Book book = bookRepository.findById(id).get();
-        log.info("Book deleting...{}",book);
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Book does not exist"));
+        log.info("Book deleting...{}", book);
         bookRepository.delete(book);
     }
 }

@@ -26,6 +26,11 @@ public class Author {
     @KeywordField(normalizer = "lowercase")
     private String name;
 
-    @ManyToMany(mappedBy = "")
+    @ManyToMany(mappedBy = "author")
     private Set<Book> books;
+
+    public Author(Long id, String name) {
+        this.id = id;
+        this.name = name;
+    }
 }
