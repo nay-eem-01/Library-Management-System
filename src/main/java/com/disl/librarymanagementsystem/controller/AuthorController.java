@@ -13,7 +13,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/app/author")
+@RequestMapping("/api/author")
 public class AuthorController {
 
     private final AuthorService authorService;

@@ -13,5 +13,5 @@ public class BookDto {
     private String title;
     private Set<AuthorDto> authorDto;
     private String isbn;
-    private boolean isAvailable;
+    private boolean available;
 }

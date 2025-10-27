@@ -1,14 +1,14 @@
 package com.disl.librarymanagementsystem.serviceImpl;
 
-import com.disl.librarymanagementsystem.dto.AuthorDto;
 import com.disl.librarymanagementsystem.dto.BookDto;
 import com.disl.librarymanagementsystem.entity.Author;
 import com.disl.librarymanagementsystem.entity.Book;
 import com.disl.librarymanagementsystem.exceptionHandler.AlreadyExistsException;
 import com.disl.librarymanagementsystem.exceptionHandler.ResourceNotFoundException;
+import com.disl.librarymanagementsystem.model.response.AuthorResponse;
 import com.disl.librarymanagementsystem.model.response.BookResponse;
+import com.disl.librarymanagementsystem.repository.AuthorRepository;
 import com.disl.librarymanagementsystem.repository.BookRepository;
-import com.disl.librarymanagementsystem.service.AuthorService;
 import com.disl.librarymanagementsystem.service.BookService;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +31,7 @@ public class BookServiceImpl implements BookService {
     private final BookRepository bookRepository;
     private final EntityManager entityManager;
     private final ModelMapper modelMapper;
+    private final AuthorRepository authorRepository;
 
     @Override
     public void saveBook(BookDto bookDto) {
@@ -42,8 +43,13 @@ public class BookServiceImpl implements BookService {
         Book book = new Book();
         Set<Author> authors = bookDto.getAuthorDto()
                 .stream()
-                .map(authorDto ->
-                        modelMapper.map(authorDto, Author.class))
+                .map(authorDto -> authorRepository.findByName(authorDto.getName())
+                        .orElseGet(() -> {
+                            Author author = new Author();
+                            author.setName(authorDto.getName());
+                            return authorRepository.save(author);
+                        })
+                )
                 .collect(Collectors.toSet());
 
         book.setTitle(bookDto.getTitle());
@@ -64,18 +70,18 @@ public class BookServiceImpl implements BookService {
                 .where(f -> f.bool()
                         .must(f.bool()
                                 .should(f.phrase()
-                                        .fields("title", "author")
+                                        .fields("title","author.name")
                                         .matching(keyword)
                                         .boost(10.0f))
                                 .should(f.match()
-                                        .fields("title", "author")
+                                        .fields("title", "author.name")
                                         .matching(keyword)
-                                        .boost(5.0f)))
+                                        .boost(8.0f)))
                         .should(f.match()
-                                .fields("title", "author")
+                                .fields("title", "author.name")
                                 .matching(keyword)
                                 .fuzzy(1)
-                                .boost(0.5f)))
+                                .boost(2f)))
 
                 .sort(SearchSortFactory::score)
                 .fetchHits(20);
@@ -92,8 +98,10 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public List<BookResponse> getAllBooks() {
-        List<Book> bookList = bookRepository.findAll();
-        return bookList.stream().map(book -> modelMapper.map(book, BookResponse.class)).collect(Collectors.toList());
+        return bookRepository.findAll()
+                .stream()
+                .map(book -> modelMapper.map(book, BookResponse.class))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -104,20 +112,41 @@ public class BookServiceImpl implements BookService {
 
         Set<Author> authors = bookDto.getAuthorDto()
                 .stream()
-                .map(authorDto ->
-                        modelMapper.map(authorDto, Author.class))
+                .map(authorDto -> authorRepository.findByName(authorDto.getName())
+                        .orElseGet(() -> {
+                            Author author = new Author();
+                            author.setName(authorDto.getName());
+                            return authorRepository.save(author);
+                        })
+                )
                 .collect(Collectors.toSet());
 
         bookFromDb.setTitle(bookDto.getTitle());
         bookFromDb.setAuthor(authors);
         bookFromDb.setIsbn(bookDto.getIsbn());
         bookFromDb.setAvailable(bookDto.isAvailable());
-
         bookFromDb = bookRepository.save(bookFromDb);
 
-        log.info("Book updated: {}", bookFromDb);
+        Set<AuthorResponse> authorResponses = bookFromDb.getAuthor()
+                .stream()
+                .map(author ->
+                        modelMapper.map(author, AuthorResponse.class))
+                .collect(Collectors.toSet());
 
-        return modelMapper.map(bookFromDb, BookResponse.class);
+        BookResponse bookResponse = new BookResponse();
+        bookResponse.setId(bookFromDb.getId());
+        bookResponse.setTitle(bookFromDb.getTitle());
+        bookResponse.setAuthors(authorResponses);
+        bookResponse.setISBN(bookFromDb.getIsbn());
+        bookResponse.setAvailable(bookFromDb.isAvailable());
+
+        log.info("\nBook updated:\nTitle: {}\nAuthor: {}\nISBN: {}\nAvailable: {}",
+                bookFromDb.getTitle(),
+                bookFromDb.getAuthor().stream().map(Author::getName).collect(Collectors.toSet()),
+                bookFromDb.getIsbn(),
+                bookFromDb.isAvailable());
+
+        return bookResponse;
     }
 
     @Override

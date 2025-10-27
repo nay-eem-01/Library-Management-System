@@ -23,7 +23,8 @@ public class CustomLuceneAnalysisConfigurer implements LuceneAnalysisConfigurer 
                 .param("language", "English")
                 .tokenFilter(ASCIIFoldingFilterFactory.class);
         
-        context.normalizer("lowercase").custom()
+        context.analyzer("name").custom()
+                .tokenizer(StandardTokenizerFactory.class)
                 .tokenFilter(LowerCaseFilterFactory.class)
                 .tokenFilter(ASCIIFoldingFilterFactory.class);
     }

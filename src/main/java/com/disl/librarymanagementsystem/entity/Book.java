@@ -2,7 +2,6 @@ package com.disl.librarymanagementsystem.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -39,13 +38,13 @@ public class Book {
     private String isbn;
 
     @Column(name = "is_book_available")
-    private boolean isAvailable;
+    private boolean available;
 
     @ManyToMany
     @JoinTable(
             name = "book_author",
             joinColumns = @JoinColumn(name = "book_id"),
             inverseJoinColumns = @JoinColumn(name = "author_id"))
-    @IndexedEmbedded
+    @IndexedEmbedded(includePaths = "name")
     private Set<Author> author;
 }
