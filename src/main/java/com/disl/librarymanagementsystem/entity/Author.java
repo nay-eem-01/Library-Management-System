@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
-import org.hibernate.search.mapper.pojo.mapping.definition.annotation.KeywordField;
 
 import java.util.Set;
 
@@ -30,9 +29,4 @@ public class Author {
     @ManyToMany(mappedBy = "author")
     @JsonIgnore
     private Set<Book> books;
-
-    public Author(Long id, String name) {
-        this.id = id;
-        this.name = name;
-    }
 }

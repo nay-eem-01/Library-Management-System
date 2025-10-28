@@ -30,6 +30,7 @@ public class Book {
     @Column(name = "book_title")
     @NotBlank(message = "Book must contain a title")
     @FullTextField(analyzer = "english", termVector = TermVector.YES)
+    @FullTextField(name = "title_ngram", analyzer = "edge_ngram")
     private String title;
 
     @Column(name = "isbn")
