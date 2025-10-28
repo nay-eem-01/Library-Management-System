@@ -2,7 +2,6 @@ package com.disl.librarymanagementsystem.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,6 +10,9 @@ import org.hibernate.search.engine.backend.types.TermVector;
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.FullTextField;
 
 import org.hibernate.search.mapper.pojo.mapping.definition.annotation.Indexed;
+import org.hibernate.search.mapper.pojo.mapping.definition.annotation.IndexedEmbedded;
+
+import java.util.Set;
 
 @Entity
 @Table(name = "books")
@@ -28,12 +30,8 @@ public class Book {
     @Column(name = "book_title")
     @NotBlank(message = "Book must contain a title")
     @FullTextField(analyzer = "english", termVector = TermVector.YES)
+    @FullTextField(name = "title_ngram", analyzer = "edge_ngram")
     private String title;
-
-    @Column(name = "author_name")
-    @NotBlank(message = "Book must contain author name")
-    @FullTextField(analyzer = "name", termVector = TermVector.YES)
-    private String author;
 
     @Column(name = "isbn")
     @NotBlank(message = "Book must contain ISBN number")
@@ -41,5 +39,13 @@ public class Book {
     private String isbn;
 
     @Column(name = "is_book_available")
-    private boolean isAvailable;
+    private boolean available;
+
+    @ManyToMany
+    @JoinTable(
+            name = "book_author",
+            joinColumns = @JoinColumn(name = "book_id"),
+            inverseJoinColumns = @JoinColumn(name = "author_id"))
+    @IndexedEmbedded(includePaths = "name")
+    private Set<Author> author;
 }

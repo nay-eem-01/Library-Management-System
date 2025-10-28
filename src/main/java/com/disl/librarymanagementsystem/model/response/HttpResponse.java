@@ -26,5 +26,9 @@ public class HttpResponse {
     public static ResponseEntity<HttpResponse> getResponseEntity(HttpStatus httpStatus, String message, Object payload, boolean success) {
         return new ResponseEntity<>(new HttpResponse(httpStatus, message, payload, success), httpStatus);
     }
+    public static ResponseEntity<HttpResponse> getResponseEntityForError(HttpStatus httpStatus, String message, Object payload) {
+        return new ResponseEntity<>(new HttpResponse(httpStatus, message, payload, httpStatus.equals(HttpStatus.OK)), httpStatus);
+    }
+
 
 }

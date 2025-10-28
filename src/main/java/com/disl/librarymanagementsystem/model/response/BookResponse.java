@@ -1,6 +1,7 @@
 package com.disl.librarymanagementsystem.model.response;
 
 import lombok.*;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -10,7 +11,7 @@ import lombok.*;
 public class BookResponse {
     private Long id;
     private String title;
-    private String author;
+    private Set<AuthorResponse> authors;
     private String ISBN;
     private boolean isAvailable;
 }
